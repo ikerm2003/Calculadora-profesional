@@ -25,9 +25,14 @@ class Calculadora(QMainWindow):
         super().__init__()
         self.setWindowTitle("Calculadora")
         self.mode = "Estandar"
+        self.initMenu()
         self.show()
         self.checkMode()
 
+    def initMenu(self):
+        menubar = self.menuBar()
+        menubar.
+        
     def checkMode(self):
         match self.mode:
             case "Estandar":
