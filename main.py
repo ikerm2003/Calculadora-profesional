@@ -75,8 +75,8 @@ class Calculadora(QMainWindow):
 
         self.deleteButton = QPushButton('\u232b')
         self.deleteButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
-        self.deleteButton.clicked.connect(self.delete)
         self.deleteButton.setShortcut(Qt.Key.Key_Backslash)
+        self.deleteButton.clicked.connect(self.delete)
 
         self.fracc1overxButton = QPushButton("\u215Fx")
         self.fracc1overxButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
@@ -97,70 +97,83 @@ class Calculadora(QMainWindow):
 
         self.sevenButton = QPushButton("7")
         self.sevenButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
-        self.sevenButton.clicked.connect(self.seven)
+        self.sevenButton.clicked.connect(lambda: self.insertNumberSTD(7))
         self.sevenButton.setShortcut(Qt.Key.Key_7)
 
         self.eightButton = QPushButton("8")
         self.eightButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
-        self.eightButton.clicked.connect(self.eight)
+        self.sevenButton.clicked.connect(lambda: self.insertNumberSTD(8))
         self.eightButton.setShortcut(Qt.Key.Key_8)
 
         self.nineButton = QPushButton("9")
         self.nineButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
-        self.nineButton.clicked.connect(self.nine)
+        self.nineButton.clicked.connect(lambda: self.insertNumberSTD(9))
         self.nineButton.setShortcut(Qt.Key.Key_9)
 
         self.multButton = QPushButton("x")
+        self.multButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
         self.multButton.clicked.connect(self.mult)
         self.multButton.setShortcut(Qt.Key.Key_multiply)
 
         self.fourButton = QPushButton("4")
-        self.fourButton.clicked.connect(self.four)
+        self.fourButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
+        self.fourButton.clicked.connect(lambda: self.insertNumberSTD(4))
         self.fourButton.setShortcut(Qt.Key.Key_4)
 
         self.fiveButton = QPushButton("5")
-        self.fiveButton.clicked.connect(self.five)
+        self.fiveButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
+        self.fiveButton.clicked.connect(lambda: self.insertNumberSTD(5))
         self.fiveButton.setShortcut(Qt.Key.Key_5)
 
         self.sixButton = QPushButton("6")
-        self.sixButton.clicked.connect(self.six)
+        self.sixButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
+        self.sixButton.clicked.connect(lambda:self.insertNumberSTD(6))
         self.sixButton.setShortcut(Qt.Key.Key_6)
 
         self.minusButton = QPushButton("-")
+        self.minusButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
         self.minusButton.clicked.connect(self.minus)
         self.minusButton.setShortcut(Qt.Key.Key_Minus)
 
         self.oneButton = QPushButton("1")
-        self.oneButton.clicked.connect(self.one)
+        self.oneButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
+        self.oneButton.clicked.connect(lambda:self.insertNumberSTD(1))
         self.oneButton.setShortcut(Qt.Key.Key_1)
 
         self.twoButton = QPushButton("2")
-        self.twoButton.clicked.connect(self.two)
+        self.twoButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
+        self.twoButton.clicked.connect(lambda:self.insertNumberSTD(2))
         self.twoButton.setShortcut(Qt.Key.Key_2)
 
         self.threeButton = QPushButton("3")
-        self.threeButton.clicked.connect(self.three)
+        self.threeButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
+        self.threeButton.clicked.connect(lambda:self.insertNumberSTD(3))
         self.threeButton.setShortcut(Qt.Key.Key_3)
 
         self.plusButton = QPushButton("+")
+        self.plusButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
         self.plusButton.clicked.connect(self.plus)
         self.plusButton.setShortcut(Qt.Key.Key_Plus)
 
         self.masmenosButton = QPushButton("\u00B1")
+        self.masmenosButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
         self.masmenosButton.clicked.connect(self.plusminus)
         self.masmenosButton.setShortcut(Qt.Key.Key_plusminus)
 
         self.ceroButton = QPushButton("0")
-        self.ceroButton.clicked.connect(self.cero)
+        self.ceroButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
+        self.ceroButton.clicked.connect(lambda:self.insertNumberSTD(0))
         self.ceroButton.setShortcut(Qt.Key.Key_0)
 
         self.comaButton = QPushButton(",")
+        self.comaButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
         self.comaButton.clicked.connect(self.comma)
         self.comaButton.setShortcut(Qt.Key.Key_Period)
 
         self.equalButton = QPushButton("=")
+        self.equalButton.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum))
         self.equalButton.clicked.connect(self.equal)
-        self.equalButton.setShortcut(Qt.Key.Key_Enter)
+        self.equalButton.setShortcut(Qt.Key.Key_Enter)  
         
 
     def MC(self):
@@ -202,30 +215,22 @@ class Calculadora(QMainWindow):
     def div(self):
         pass
 
-    def seven(self):
-        self.addToLCD(number=7) # type: ignore
-
-    def eight(self):
-        self.addToLCD(number=8)
-
-    def nine(self):
-        self.addToLCD(number=9)
+    
 
     def mult(self):
         pass
 
-    def four(self):
-        self.addToLCD(number=4)
-
-    def five(self):
-        self.addToLCD(number=5)
-
-    def six(self):
-        self.addToLCD(number=6)
+    
 
     def minus(self):
         pass
-
+    
+    def insertNumberSTD(self, number:int):
+        self.addToLCD(number)
+    
+    def cero(self):
+        self.addToLCD(number=0)
+    
     def one(self):
         self.addToLCD(number=1)
 
@@ -234,6 +239,24 @@ class Calculadora(QMainWindow):
 
     def three(self):
         self.addToLCD(number=3)
+        
+    def four(self):
+        self.addToLCD(number=4)
+
+    def five(self):
+        self.addToLCD(number=5)
+
+    def six(self):
+        self.addToLCD(number=6)
+        
+    def seven(self):
+        self.addToLCD(number=7) 
+        
+    def eight(self):
+        self.addToLCD(number=8)
+
+    def nine(self):
+        self.addToLCD(number=9)
 
     def plus(self):
         pass
@@ -241,8 +264,6 @@ class Calculadora(QMainWindow):
     def plusminus(self):
         pass
 
-    def cero(self):
-        self.addToLCD(number=0)
 
     def comma(self):
         pass

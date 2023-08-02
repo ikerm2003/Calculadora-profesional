@@ -1,3 +1,12 @@
 {
-    "python.analysis.typeCheckingMode": "basic"
+    "python.analysis.typeCheckingMode": "basic",
+    "cSpell.words": [
+        "Cientifico",
+        "Converir",
+        "Energia",
+        "Estandar",
+        "Grafica",
+        "Gui",
+        "qdarktheme"
+    ]
 }
