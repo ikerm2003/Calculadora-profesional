@@ -9,23 +9,21 @@
 #   Si, es una copia de la calculadora de windows   #
 #####################################################
 # *El historial se guarda en un archivo a parte (en %temp%) para poder conservarlo si cambio de modo
-try:
-    import sys
 
-    import qdarktheme
-    from PyQt6.QtCore import Qt
-    from PyQt6.QtGui import QWindow
-    from PyQt6.QtWidgets import (
-        QMainWindow,
-        QLCDNumber,
-        QPushButton,
-        QSizePolicy,
-        QWidget,
-        QGridLayout,
-        QApplication,
-    )
-except ImportError as err:
-    raise ImportError(f"Cannot import {err.name}")
+import sys
+
+import qdarktheme
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QWindow, QScreen
+from PyQt6.QtWidgets import (
+    QMainWindow,
+    QLCDNumber,
+    QPushButton,
+    QSizePolicy,
+    QWidget,
+    QGridLayout,
+    QApplication,
+)
 
 
 class Calculadora(QMainWindow):
@@ -36,6 +34,11 @@ class Calculadora(QMainWindow):
         super().__init__()
         self.setWindowTitle("Calculadora")
         self.mode = "Estandar"
+        self.screenRect = QScreen.availableGeometry(self.screen())
+        self.screenSize = self.screenWidth, self.screenHeight = (
+            self.screenRect.width(),
+            self.screenRect.height(),
+        )
         self.ButtonCreator()
         self.initLateralBar()
         self.checkMode()
@@ -44,195 +47,198 @@ class Calculadora(QMainWindow):
         """Crea los botones de la calculadora y los conecta con su funcion correspondiente"""
         self.LCDNumber = QLCDNumber()
         self.LCDNumber.setMinimumSize(300, 80)
+        self.LCDNumber.setSizePolicy(
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        )
 
         self.MCButton = QPushButton("MC")
         self.MCButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.MCButton.clicked.connect(self.MC)
 
         self.MRButton = QPushButton("MR")
         self.MRButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.MRButton.clicked.connect(self.MR)
 
         self.MPlusButton = QPushButton("M+")
         self.MPlusButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.MPlusButton.clicked.connect(self.MPlus)
 
         self.MMenosButton = QPushButton("M-")
         self.MMenosButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.MMenosButton.clicked.connect(self.MMenos)
 
         self.MSButton = QPushButton("MS")
         self.MSButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.MSButton.clicked.connect(self.MS)
 
         self.porcientoButton = QPushButton("%")
         self.porcientoButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.porcientoButton.clicked.connect(self.porciento)
 
         self.CEButton = QPushButton("CE")
         self.CEButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.CEButton.clicked.connect(self.CE)
 
         self.CButton = QPushButton("C")
         self.CButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.CButton.clicked.connect(self.C)
 
         self.deleteButton = QPushButton("\u232b")
         self.deleteButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.deleteButton.setShortcut(Qt.Key.Key_Backslash)
         self.deleteButton.clicked.connect(self.delete)
 
         self.fracc1overxButton = QPushButton("\u215Fx")
         self.fracc1overxButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.fracc1overxButton.clicked.connect(self.fracc1overx)
 
         self.cuadradoButton = QPushButton("x²")
         self.cuadradoButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.cuadradoButton.clicked.connect(self.cuadrado)
 
         self.sqrtButton = QPushButton("\u221Ax")
         self.sqrtButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.sqrtButton.clicked.connect(self.sqrt)
 
         self.divButton = QPushButton("\u00F7")
         self.divButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.divButton.clicked.connect(self.div)
         self.divButton.setShortcut(Qt.Key.Key_Bar)
 
         self.sevenButton = QPushButton("7")
         self.sevenButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.sevenButton.clicked.connect(lambda: self.insertNumberSTD(7))
+        self.sevenButton.clicked.connect(lambda: self.addToLCD(7))
         self.sevenButton.setShortcut(Qt.Key.Key_7)
 
         self.eightButton = QPushButton("8")
         self.eightButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.sevenButton.clicked.connect(lambda: self.insertNumberSTD(8))
+        self.sevenButton.clicked.connect(lambda: self.addToLCD(8))
         self.eightButton.setShortcut(Qt.Key.Key_8)
 
         self.nineButton = QPushButton("9")
         self.nineButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.nineButton.clicked.connect(lambda: self.insertNumberSTD(9))
+        self.nineButton.clicked.connect(lambda: self.addToLCD(9))
         self.nineButton.setShortcut(Qt.Key.Key_9)
 
         self.multButton = QPushButton("x")
         self.multButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.multButton.clicked.connect(self.mult)
         self.multButton.setShortcut(Qt.Key.Key_multiply)
 
         self.fourButton = QPushButton("4")
         self.fourButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.fourButton.clicked.connect(lambda: self.insertNumberSTD(4))
+        self.fourButton.clicked.connect(lambda: self.addToLCD(4))
         self.fourButton.setShortcut(Qt.Key.Key_4)
 
         self.fiveButton = QPushButton("5")
         self.fiveButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.fiveButton.clicked.connect(lambda: self.insertNumberSTD(5))
+        self.fiveButton.clicked.connect(lambda: self.addToLCD(5))
         self.fiveButton.setShortcut(Qt.Key.Key_5)
 
         self.sixButton = QPushButton("6")
         self.sixButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.sixButton.clicked.connect(lambda: self.insertNumberSTD(6))
+        self.sixButton.clicked.connect(lambda: self.addToLCD(6))
         self.sixButton.setShortcut(Qt.Key.Key_6)
 
         self.minusButton = QPushButton("-")
         self.minusButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.minusButton.clicked.connect(self.minus)
         self.minusButton.setShortcut(Qt.Key.Key_Minus)
 
         self.oneButton = QPushButton("1")
         self.oneButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.oneButton.clicked.connect(lambda: self.insertNumberSTD(1))
+        self.oneButton.clicked.connect(lambda: self.addToLCD(1))
         self.oneButton.setShortcut(Qt.Key.Key_1)
 
         self.twoButton = QPushButton("2")
         self.twoButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.twoButton.clicked.connect(lambda: self.insertNumberSTD(2))
+        self.twoButton.clicked.connect(lambda: self.addToLCD(2))
         self.twoButton.setShortcut(Qt.Key.Key_2)
 
         self.threeButton = QPushButton("3")
         self.threeButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.threeButton.clicked.connect(lambda: self.insertNumberSTD(3))
+        self.threeButton.clicked.connect(lambda: self.addToLCD(3))
         self.threeButton.setShortcut(Qt.Key.Key_3)
 
         self.plusButton = QPushButton("+")
         self.plusButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.plusButton.clicked.connect(self.plus)
         self.plusButton.setShortcut(Qt.Key.Key_Plus)
 
         self.masmenosButton = QPushButton("\u00B1")
         self.masmenosButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.masmenosButton.clicked.connect(self.plusminus)
         self.masmenosButton.setShortcut(Qt.Key.Key_plusminus)
 
         self.ceroButton = QPushButton("0")
         self.ceroButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.ceroButton.clicked.connect(lambda: self.insertNumberSTD(0))
+        self.ceroButton.clicked.connect(lambda: self.addToLCD(0))
         self.ceroButton.setShortcut(Qt.Key.Key_0)
 
         self.comaButton = QPushButton(",")
         self.comaButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.comaButton.clicked.connect(self.comma)
         self.comaButton.setShortcut(Qt.Key.Key_Period)
 
         self.equalButton = QPushButton("=")
         self.equalButton.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
         self.equalButton.clicked.connect(self.equal)
         self.equalButton.setShortcut(Qt.Key.Key_Enter)
@@ -281,9 +287,6 @@ class Calculadora(QMainWindow):
 
     def minus(self):
         pass
-
-    def insertNumberSTD(self, number: int):
-        self.addToLCD(number)
 
     def plus(self):
         pass
@@ -343,6 +346,7 @@ class Calculadora(QMainWindow):
         centralWidget = QWidget()
         MButtonsWidget = QWidget()
         layout = QGridLayout()
+
         MButtonsLayout = QGridLayout()
         generalButtons = QWidget()
         generalButtonsLayout = QGridLayout()
