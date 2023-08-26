@@ -10,11 +10,38 @@
 #####################################################
 # *El historial se guarda en un archivo a parte (en %temp%) para poder conservarlo si cambio de modo
 
+import os
 import sys
-
+from configparser import ConfigParser
+from rembg import remove
 import qdarktheme
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QWindow, QScreen
+from PyQt6.QtCore import (
+    Qt,
+    QSize,
+    QMetaObject,
+    QCoreApplication,
+    QBuffer,
+    QPropertyAnimation,
+    QEasingCurve,
+    QByteArray,
+)
+from PyQt6.QtGui import (
+    QWindow,
+    QAction,
+    QScreen,
+    QIcon,
+    QPixmap,
+    QFont,
+    QImage,
+    qRgb,
+    qRgba,
+    qGreen,
+    qBlue,
+    qRed,
+    qAlpha,
+    QColor,
+    QMouseEvent,
+)
 from PyQt6.QtWidgets import (
     QMainWindow,
     QLCDNumber,
@@ -23,7 +50,30 @@ from PyQt6.QtWidgets import (
     QWidget,
     QGridLayout,
     QApplication,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QSpacerItem,
+    QLineEdit,
+    QStackedWidget,
+    QFrame,
+    QSizeGrip,
 )
+from enum import Enum
+from qfluentwidgets import StyleSheetBase, Theme, isDarkTheme, qconfig
+
+
+class StyleSheet(StyleSheetBase, Enum):
+    """Style sheet"""
+
+    MAIN_WINDOW = "main_window"
+
+    def path(self, theme=Theme.AUTO):
+        theme = qconfig.theme if theme == Theme.AUTO else theme
+        if theme == Theme.LIGHT:
+            return qdarktheme.load_stylesheet("light")
+        if theme == Theme.DARK:
+            return qdarktheme.load_stylesheet("dark")
 
 
 class Calculadora(QMainWindow):
@@ -33,15 +83,28 @@ class Calculadora(QMainWindow):
         """Funcion de inicio"""
         super().__init__()
         self.setWindowTitle("Calculadora")
-        self.mode = "Estandar"
+        self.setStyleSheet(qdarktheme.load_stylesheet("dark"))
+        # StyleSheet.MAIN_WINDOW.apply(self, Theme.DARK)
+        self.cfg = self.config_read()
+        self.themes = self.cfg.get("Theme", "posible-themes")
+        self.currentTheme = self.cfg.get("Theme", "actual-theme")
+        self.mode = self.cfg.get("Mode", "actual-mode") #TODO: Si cambia el modo, cambia esta variable en el archivo cfg
         self.screenRect = QScreen.availableGeometry(self.screen())
-        self.screenSize = self.screenWidth, self.screenHeight = (
+        self.screenWidth, self.screenHeight = (
             self.screenRect.width(),
             self.screenRect.height(),
         )
+        self.screenSize = QSize(self.screenWidth, self.screenHeight)
+        # TODO: Añadir icono
+        # TODO: Hacer barra superior invisible y handle bottones
         self.ButtonCreator()
         self.initLateralBar()
         self.checkMode()
+
+    def config_read(self, cfg_file=os.path.join("Assets", "config.cfg"))->ConfigParser:
+        parser = ConfigParser(allow_no_value=True)
+        parser.read(cfg_file)
+        return parser
 
     def ButtonCreator(self):
         """Crea los botones de la calculadora y los conecta con su funcion correspondiente"""
@@ -135,21 +198,21 @@ class Calculadora(QMainWindow):
         self.sevenButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.sevenButton.clicked.connect(lambda: self.addToLCD(7))
+        self.sevenButton.clicked.connect(lambda: self.addToLCD_STD(7))
         self.sevenButton.setShortcut(Qt.Key.Key_7)
 
         self.eightButton = QPushButton("8")
         self.eightButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.sevenButton.clicked.connect(lambda: self.addToLCD(8))
+        self.sevenButton.clicked.connect(lambda: self.addToLCD_STD(8))
         self.eightButton.setShortcut(Qt.Key.Key_8)
 
         self.nineButton = QPushButton("9")
         self.nineButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.nineButton.clicked.connect(lambda: self.addToLCD(9))
+        self.nineButton.clicked.connect(lambda: self.addToLCD_STD(9))
         self.nineButton.setShortcut(Qt.Key.Key_9)
 
         self.multButton = QPushButton("x")
@@ -163,21 +226,21 @@ class Calculadora(QMainWindow):
         self.fourButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.fourButton.clicked.connect(lambda: self.addToLCD(4))
+        self.fourButton.clicked.connect(lambda: self.addToLCD_STD(4))
         self.fourButton.setShortcut(Qt.Key.Key_4)
 
         self.fiveButton = QPushButton("5")
         self.fiveButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.fiveButton.clicked.connect(lambda: self.addToLCD(5))
+        self.fiveButton.clicked.connect(lambda: self.addToLCD_STD(5))
         self.fiveButton.setShortcut(Qt.Key.Key_5)
 
         self.sixButton = QPushButton("6")
         self.sixButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.sixButton.clicked.connect(lambda: self.addToLCD(6))
+        self.sixButton.clicked.connect(lambda: self.addToLCD_STD(6))
         self.sixButton.setShortcut(Qt.Key.Key_6)
 
         self.minusButton = QPushButton("-")
@@ -191,21 +254,21 @@ class Calculadora(QMainWindow):
         self.oneButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.oneButton.clicked.connect(lambda: self.addToLCD(1))
+        self.oneButton.clicked.connect(lambda: self.addToLCD_STD(1))
         self.oneButton.setShortcut(Qt.Key.Key_1)
 
         self.twoButton = QPushButton("2")
         self.twoButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.twoButton.clicked.connect(lambda: self.addToLCD(2))
+        self.twoButton.clicked.connect(lambda: self.addToLCD_STD(2))
         self.twoButton.setShortcut(Qt.Key.Key_2)
 
         self.threeButton = QPushButton("3")
         self.threeButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.threeButton.clicked.connect(lambda: self.addToLCD(3))
+        self.threeButton.clicked.connect(lambda: self.addToLCD_STD(3))
         self.threeButton.setShortcut(Qt.Key.Key_3)
 
         self.plusButton = QPushButton("+")
@@ -226,7 +289,7 @@ class Calculadora(QMainWindow):
         self.ceroButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.ceroButton.clicked.connect(lambda: self.addToLCD(0))
+        self.ceroButton.clicked.connect(lambda: self.addToLCD_STD(0))
         self.ceroButton.setShortcut(Qt.Key.Key_0)
 
         self.comaButton = QPushButton(",")
@@ -300,7 +363,7 @@ class Calculadora(QMainWindow):
     def equal(self):
         pass
 
-    def addToLCD(self, number: int):
+    def addToLCD_STD(self, number: int):
         originalNumber = self.LCDNumber.value()
         if originalNumber == 0:
             originalNumber = int()
@@ -318,8 +381,371 @@ class Calculadora(QMainWindow):
                 )
             )
 
+    def constructImg(self, img_path: str, size: QSize):
+        image = QImage(os.path.join("Assets", img_path))
+        image = image.scaled(size, Qt.AspectRatioMode.KeepAspectRatio)
+        image = image.convertToFormat(QImage.Format.Format_MonoLSB)
+        image.setColor(0, qRgba(0, 0, 0, 0))
+        if self.currentTheme == "dark":
+            image.setColor(1, qRgb(255, 255, 255))
+        else:
+            pass
+        return image
+
+    def toggleButton(self):
+        width = self.frame_lateralbar.width()
+        # If minimized
+        if width == 0:
+            # Expand menu
+            newWidth = 200
+            self.openClose_sidebar_btn.setIcon(
+                QIcon(os.path.join("Assets", "icons", "chevrons-left.svg"))
+            )
+        # If maximized
+        else:
+            # Restore menu
+            newWidth = 0
+            self.openClose_sidebar_btn.setIcon(
+                QIcon(os.path.join("Assets", "icons", "align-left.svg"))
+            )
+        self.animation = QPropertyAnimation(
+            self.frame_lateralbar, b"minimumWidth"
+        )  # Animate minimumWidht #type:ignore
+        self.animation.setDuration(250)
+        self.animation.setStartValue(width)  # Start value is the current menu width
+        self.animation.setEndValue(newWidth)  # end value is the new menu width
+        self.animation.setEasingCurve(QEasingCurve.Type.InOutQuart)
+        self.animation.start()
+
     def initLateralBar(self):
-        pass
+        self.frame_inferior = QFrame()  # frame sobre el que se coloca todo
+        self.frame_inferior.setSizePolicy(
+            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred
+        )
+        self.frame_inferior_layout = QVBoxLayout()
+        self.frame_inferior_layout.setContentsMargins(0, 0, 0, 0)
+        self.frame_inferior_layout.setSpacing(0)
+        self.frame_inferior.setLayout(self.frame_inferior_layout)
+
+        self.frame_superior = (
+            QFrame()
+        )  # frame para el boton de menu y botonoes superiores
+        self.frame_superior.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame_superior.setMaximumHeight(32)
+        self.frame_superior_layout = QHBoxLayout()
+        self.frame_superior_layout.setContentsMargins(0, 0, 0, 0)
+        self.frame_superior_layout.setSpacing(0)
+        self.frame_superior.setLayout(self.frame_superior_layout)
+        self.openClose_sidebar_btn = QPushButton("")
+        self.openClose_sidebar_btn.setMaximumHeight(32)
+        self.openClose_sidebar_btn.setIcon(
+            QIcon(os.path.join("Assets", "icons", "chevrons-left.svg"))
+        )
+        self.openClose_sidebar_btn.clicked.connect(self.toggleButton)
+        self.frame_superior_layout.addWidget(self.openClose_sidebar_btn)
+        self.frame_superior_layout.addStretch()
+        # self.frame_superior_layout.addWidget(QPushButton("Max"))
+        # self.frame_superior_layout.addWidget(QPushButton("Close"))
+
+        self.frame_contenedor = QFrame()  # frame contenedor de abajo
+        self.frame_contenedor.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame_contenedor_layout = QHBoxLayout()
+        self.frame_contenedor.setLayout(self.frame_contenedor_layout)
+        self.frame_contenedor_layout.setContentsMargins(0, 0, 0, 0)
+        self.frame_contenedor_layout.setSpacing(0)
+
+        self.frame_lateralbar_buttons = QFrame() # Frame de los botones
+        self.frame_lateralbar_buttons.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame_lateralbar_buttons_layout = QVBoxLayout()
+        self.frame_lateralbar_buttons.setLayout(self.frame_lateralbar_buttons_layout)
+        self.frame_lateralbar_buttons_layout.setContentsMargins(0,0,0,0)
+        self.frame_lateralbar_buttons_layout.setSpacing(0)
+        
+        self.frame_lateralbar_configButton = QFrame()   # Frame del config button
+        self.frame_lateralbar_configButton.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame_lateralbar_configButton.setMaximumHeight(50)
+        self.frame_lateralbar_configButton_layout = QVBoxLayout()
+        self.frame_lateralbar_configButton.setLayout(self.frame_lateralbar_configButton_layout)
+        self.frame_lateralbar_configButton_layout.setContentsMargins(0,0,0,0)
+        self.frame_lateralbar_configButton_layout.setSpacing(0)
+        
+        self.frame_lateralbar = QFrame()  # Barra lateral
+        self.frame_lateralbar.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame_lateralbar.setMaximumWidth(0)
+        self.frame_lateralbar.setMinimumWidth(200)
+        self.frame_lateralbar_layout = QVBoxLayout()
+        self.frame_lateralbar.setLayout(self.frame_lateralbar_layout)
+        self.frame_lateralbar_layout.setContentsMargins(0, 0, 0, 0)
+        self.frame_lateralbar_layout.setSpacing(0)
+        
+        self.calculadoraLabel = QLabel("Calculadora") #Calculadora
+        self.calculadoraLabel.setStyleSheet("font-weight: 900")
+        self.standardButton = QPushButton()
+        self.cienficaButton = QPushButton()
+        self.graficaButton = QPushButton()
+        self.progrmadorButton = QPushButton()
+        self.calcFechaButton = QPushButton()
+        
+        self.convertidorLabel = QLabel("Convertidor")   #Convertidor
+        self.convertidorLabel.setStyleSheet("font-weight: 900")
+        self.monedaButton = QPushButton()
+        self.volumenButton = QPushButton()
+        self.longitudButton = QPushButton()
+        self.pesoYmasaButton = QPushButton()
+        self.temperaturaButton = QPushButton()
+        self.energiaButton = QPushButton()
+        self.areaButton = QPushButton()
+        self.velocidadButton = QPushButton()
+        self.tiempoButton = QPushButton()
+        self.potenciaButton = QPushButton()
+        self.datosButton = QPushButton()
+        self.presionButton = QPushButton()
+        self.anguloButton = QPushButton()
+        
+        self.configButton = QPushButton()
+        
+        
+        
+        self.frame_lateralbar_buttons_layout.addWidget(self.calculadoraLabel)
+        self.frame_lateralbar_buttons_layout.addWidget(self.standardButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.cienficaButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.graficaButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.progrmadorButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.calcFechaButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.convertidorLabel)
+        self.frame_lateralbar_buttons_layout.addWidget(self.monedaButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.volumenButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.longitudButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.pesoYmasaButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.temperaturaButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.energiaButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.areaButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.velocidadButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.tiempoButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.potenciaButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.datosButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.presionButton)
+        self.frame_lateralbar_buttons_layout.addWidget(self.anguloButton)
+        self.frame_lateralbar_configButton_layout.addWidget(self.configButton)
+
+        self.frame_central = QFrame()  # lado central (donde va la calculadora)
+        self.frame_central.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame_central_layout = QVBoxLayout()
+        self.frame_central.setLayout(self.frame_central_layout)
+        self.frame_central_layout.setContentsMargins(0, 0, 0, 0)
+        self.frame_central_layout.setSpacing(0)
+
+        self.frame_lateralbar_layout.addWidget(self.frame_lateralbar_buttons)
+        self.frame_lateralbar_layout.addWidget(self.frame_lateralbar_configButton)
+        self.frame_contenedor_layout.addWidget(self.frame_lateralbar)
+        self.frame_contenedor_layout.addWidget(self.frame_central)
+        self.frame_inferior_layout.addWidget(self.frame_superior)
+        self.frame_inferior_layout.addWidget(self.frame_contenedor)
+
+        self.setCentralWidget(self.frame_inferior)
+
+        """
+        self.logo_label_standard = QLabel("")
+        self.logo_label_standard.setMinimumSize(QSize(50, 50))
+        self.logo_label_standard.setMaximumSize(QSize(50, 50))
+        self.logo_label_standard.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg("estandar.png", self.logo_label_standard.size())
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_standard)
+
+        self.logo_label_cientifico = QLabel("")
+        self.logo_label_cientifico.setMinimumSize(QSize(50, 50))
+        self.logo_label_cientifico.setMaximumSize(QSize(50, 50))
+        self.logo_label_cientifico.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg("cientifica.png", self.logo_label_cientifico.size())
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_cientifico)
+
+        self.logo_label_grafica = QLabel("")
+        self.logo_label_grafica.setMinimumSize(QSize(50, 50))
+        self.logo_label_grafica.setMaximumSize(QSize(50, 50))
+        self.logo_label_grafica.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg("grafica.png", self.logo_label_grafica.size())
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_grafica)
+
+        self.logo_label_programador = QLabel("")
+        self.logo_label_programador.setMinimumSize(QSize(50, 50))
+        self.logo_label_programador.setMaximumSize(QSize(50, 50))
+        self.logo_label_programador.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg("programador.png", self.logo_label_programador.size())
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_programador)
+
+        self.separator = QLabel("-")
+        self.separator.setMinimumSize(QSize(50, 50))
+        self.separator.setMaximumSize(QSize(50, 50))
+        self.separator.setScaledContents(True)
+        self.icon_only_widget_layout.addWidget(self.separator)
+
+        self.logo_label_calcularFecha = QLabel("")
+        self.logo_label_calcularFecha.setMinimumSize(QSize(50, 50))
+        self.logo_label_calcularFecha.setMaximumSize(QSize(50, 50))
+        self.logo_label_calcularFecha.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg("Fecha.png", self.logo_label_calcularFecha.size())
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_calcularFecha)
+
+        self.logo_label_convertirDinero = QLabel("")
+        self.logo_label_convertirDinero.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirDinero.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirDinero.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg("moneda.png", self.logo_label_convertirDinero.size())
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirDinero)
+
+        self.logo_label_convertirVolumen = QLabel("")
+        self.logo_label_convertirVolumen.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirVolumen.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirVolumen.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg(
+                    "volumen.png", self.logo_label_convertirVolumen.size()
+                )
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirVolumen)
+
+        self.logo_label_convertirLongitud = QLabel("")
+        self.logo_label_convertirLongitud.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirLongitud.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirLongitud.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg(
+                    "longitud.png", self.logo_label_convertirLongitud.size()
+                )
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirLongitud)
+
+        self.logo_label_convertirMasa = QLabel("")
+        self.logo_label_convertirMasa.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirMasa.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirMasa.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg("masa.png", self.logo_label_convertirMasa.size())
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirMasa)
+
+        self.logo_label_convertirTemperatura = QLabel("")
+        self.logo_label_convertirTemperatura.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirTemperatura.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirTemperatura.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg(
+                    "temperatura.png", self.logo_label_convertirTemperatura.size()
+                )
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirTemperatura)
+
+        self.logo_label_convertirEnergia = QLabel("")
+        self.logo_label_convertirEnergia.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirEnergia.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirEnergia.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg(
+                    "energia.png", self.logo_label_convertirEnergia.size()
+                )
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirEnergia)
+
+        self.logo_label_convertirArea = QLabel("")
+        self.logo_label_convertirArea.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirArea.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirArea.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg("area.png", self.logo_label_convertirArea.size())
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirArea)
+
+        self.logo_label_convertirVelocidad = QLabel("")
+        self.logo_label_convertirVelocidad.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirVelocidad.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirVelocidad.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg(
+                    "velocidad.png", self.logo_label_convertirVelocidad.size()
+                )
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirVelocidad)
+
+        self.logo_label_convertirTiempo = QLabel("")
+        self.logo_label_convertirTiempo.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirTiempo.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirTiempo.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg("tiempo.png", self.logo_label_convertirTiempo.size())
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirTiempo)
+
+        self.logo_label_convertirPotencia = QLabel("")
+        self.logo_label_convertirPotencia.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirPotencia.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirPotencia.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg(
+                    "potencia.png", self.logo_label_convertirPotencia.size()
+                )
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirPotencia)
+
+        self.logo_label_convertirDatos = QLabel("")
+        self.logo_label_convertirDatos.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirDatos.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirDatos.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg("datos.png", self.logo_label_convertirDatos.size())
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirDatos)
+
+        self.logo_label_convertirPresion = QLabel("")
+        self.logo_label_convertirPresion.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirPresion.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirPresion.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg(
+                    "presion.png", self.logo_label_convertirPresion.size()
+                )
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirPresion)
+
+        self.logo_label_convertirAngulo = QLabel("")
+        self.logo_label_convertirAngulo.setMinimumSize(QSize(50, 50))
+        self.logo_label_convertirAngulo.setMaximumSize(QSize(50, 50))
+        self.logo_label_convertirAngulo.setPixmap(
+            QPixmap.fromImage(
+                self.constructImg("angulo.png", self.logo_label_convertirAngulo.size())
+            )
+        )
+        self.icon_only_widget_layout.addWidget(self.logo_label_convertirAngulo)
+        self.setCentralWidget(self.icon_only_widget)
+        """
 
     def checkMode(self):
         match self.mode:
@@ -339,10 +765,29 @@ class Calculadora(QMainWindow):
                 self.modoConvertirVolumen()
             case "ConvertirLongitud":
                 self.modoConvertirLongitud()
-            case "ConvertirVolumen":
-                self.modoConvertirMasa()
+            case "ConvertirMasa":
+                self.modoConvertirMasa
+            case "ConvertirTemperatura":
+                self.modoConvertirTemperatura()
+            case "ConvertirEnergia":
+                self.modoConvertirEnergia()
+            case "ConvertirArea":
+                self.modoConvertirArea()
+            case "ConvertirVelocidad":
+                self.modoConvertirVelocidad()
+            case "ConvertirTiempo":
+                self.modoConvertirTiempo()
+            case "ConvertirPotencia":
+                self.modoConvertirPotencia()
+            case "ConvertirDatos":
+                self.modoConvertirDatos()
+            case "ConvertirPresion":
+                self.modoConvertirPresion()
+            case "ConvertirAngulo":
+                self.modoConvertirAngulo()
 
     def modoEstandar(self):
+        """
         centralWidget = QWidget()
         MButtonsWidget = QWidget()
         layout = QGridLayout()
@@ -387,59 +832,81 @@ class Calculadora(QMainWindow):
         layout.addWidget(generalButtons)
         centralWidget.setLayout(layout)
         self.setCentralWidget(centralWidget)
+        return centralWidget
+        """
 
     def modoCientifico(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoGrafica(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoProgramador(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoCalcularFecha(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirDinero(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirVolumen(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirLongitud(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirMasa(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirTemperatura(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirEnergia(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirArea(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirVelocidad(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirTiempo(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirPotencia(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirDatos(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirPresion(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     def modoConvertirAngulo(self):
-        pass
+        centralWidget = QWidget()
+        return centralWidget
 
     class AcercaDe(QWindow):
+        pass
+
+    def config(self):
         pass
 
     def loadHistoriy(self):
@@ -452,7 +919,6 @@ class Calculadora(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     ex = Calculadora()
-    app.setStyleSheet(qdarktheme.load_stylesheet())
     ex.show()
 
     sys.exit(app.exec())
