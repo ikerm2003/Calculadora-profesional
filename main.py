@@ -88,7 +88,9 @@ class Calculadora(QMainWindow):
         self.cfg = self.config_read()
         self.themes = self.cfg.get("Theme", "posible-themes")
         self.currentTheme = self.cfg.get("Theme", "actual-theme")
-        self.mode = self.cfg.get("Mode", "actual-mode") #TODO: Si cambia el modo, cambia esta variable en el archivo cfg
+        self.mode = self.cfg.get(
+            "Mode", "actual-mode"
+        )  # TODO: Si cambia el modo, cambia esta variable en el archivo cfg
         self.screenRect = QScreen.availableGeometry(self.screen())
         self.screenWidth, self.screenHeight = (
             self.screenRect.width(),
@@ -101,7 +103,9 @@ class Calculadora(QMainWindow):
         self.initLateralBar()
         self.checkMode()
 
-    def config_read(self, cfg_file=os.path.join("Assets", "config.cfg"))->ConfigParser:
+    def config_read(
+        self, cfg_file=os.path.join("Assets", "config.cfg")
+    ) -> ConfigParser:
         parser = ConfigParser(allow_no_value=True)
         parser.read(cfg_file)
         return parser
@@ -409,8 +413,8 @@ class Calculadora(QMainWindow):
                 QIcon(os.path.join("Assets", "icons", "align-left.svg"))
             )
         self.animation = QPropertyAnimation(
-            self.frame_lateralbar, b"minimumWidth"
-        )  # Animate minimumWidht #type:ignore
+            self.frame_lateralbar, b"minimumWidth"  # type:ignore
+        )  # Animate minimumWidht
         self.animation.setDuration(250)
         self.animation.setStartValue(width)  # Start value is the current menu width
         self.animation.setEndValue(newWidth)  # end value is the new menu width
@@ -454,21 +458,23 @@ class Calculadora(QMainWindow):
         self.frame_contenedor_layout.setContentsMargins(0, 0, 0, 0)
         self.frame_contenedor_layout.setSpacing(0)
 
-        self.frame_lateralbar_buttons = QFrame() # Frame de los botones
+        self.frame_lateralbar_buttons = QFrame()  # Frame de los botones
         self.frame_lateralbar_buttons.setFrameShape(QFrame.Shape.StyledPanel)
         self.frame_lateralbar_buttons_layout = QVBoxLayout()
         self.frame_lateralbar_buttons.setLayout(self.frame_lateralbar_buttons_layout)
-        self.frame_lateralbar_buttons_layout.setContentsMargins(0,0,0,0)
+        self.frame_lateralbar_buttons_layout.setContentsMargins(0, 0, 0, 0)
         self.frame_lateralbar_buttons_layout.setSpacing(0)
-        
-        self.frame_lateralbar_configButton = QFrame()   # Frame del config button
+
+        self.frame_lateralbar_configButton = QFrame()  # Frame del config button
         self.frame_lateralbar_configButton.setFrameShape(QFrame.Shape.StyledPanel)
         self.frame_lateralbar_configButton.setMaximumHeight(50)
         self.frame_lateralbar_configButton_layout = QVBoxLayout()
-        self.frame_lateralbar_configButton.setLayout(self.frame_lateralbar_configButton_layout)
-        self.frame_lateralbar_configButton_layout.setContentsMargins(0,0,0,0)
+        self.frame_lateralbar_configButton.setLayout(
+            self.frame_lateralbar_configButton_layout
+        )
+        self.frame_lateralbar_configButton_layout.setContentsMargins(0, 0, 0, 0)
         self.frame_lateralbar_configButton_layout.setSpacing(0)
-        
+
         self.frame_lateralbar = QFrame()  # Barra lateral
         self.frame_lateralbar.setFrameShape(QFrame.Shape.StyledPanel)
         self.frame_lateralbar.setMaximumWidth(0)
@@ -477,16 +483,16 @@ class Calculadora(QMainWindow):
         self.frame_lateralbar.setLayout(self.frame_lateralbar_layout)
         self.frame_lateralbar_layout.setContentsMargins(0, 0, 0, 0)
         self.frame_lateralbar_layout.setSpacing(0)
-        
-        self.calculadoraLabel = QLabel("Calculadora") #Calculadora
+
+        self.calculadoraLabel = QLabel("Calculadora")  # Calculadora
         self.calculadoraLabel.setStyleSheet("font-weight: 900")
         self.standardButton = QPushButton()
         self.cienficaButton = QPushButton()
         self.graficaButton = QPushButton()
         self.progrmadorButton = QPushButton()
         self.calcFechaButton = QPushButton()
-        
-        self.convertidorLabel = QLabel("Convertidor")   #Convertidor
+
+        self.convertidorLabel = QLabel("Convertidor")  # Convertidor
         self.convertidorLabel.setStyleSheet("font-weight: 900")
         self.monedaButton = QPushButton()
         self.volumenButton = QPushButton()
@@ -501,11 +507,9 @@ class Calculadora(QMainWindow):
         self.datosButton = QPushButton()
         self.presionButton = QPushButton()
         self.anguloButton = QPushButton()
-        
+
         self.configButton = QPushButton()
-        
-        
-        
+
         self.frame_lateralbar_buttons_layout.addWidget(self.calculadoraLabel)
         self.frame_lateralbar_buttons_layout.addWidget(self.standardButton)
         self.frame_lateralbar_buttons_layout.addWidget(self.cienficaButton)
