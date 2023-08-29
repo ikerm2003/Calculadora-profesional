@@ -885,7 +885,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)          
+            widgetToRemove.setParent(None)           # type: ignore
         self.frame_central_layout.addWidget(QLabel("Estandar"))
         """
         centralWidget = QWidget()
@@ -941,7 +941,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Cientifico"))
 
 
@@ -951,7 +951,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Grafica"))
 
     def modoProgramador(self):
@@ -960,7 +960,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Programador"))
 
     def modoCalcularFecha(self):
@@ -969,7 +969,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Calcular fecha"))
 
     def modoConvertirDinero(self):
@@ -978,7 +978,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Convertir dinero"))
 
     def modoConvertirVolumen(self):
@@ -987,7 +987,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("convertir volumen"))
 
     def modoConvertirLongitud(self):
@@ -996,7 +996,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Convertir longitud"))
 
     def modoConvertirMasa(self):
@@ -1005,7 +1005,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Convertir masa"))
 
     def modoConvertirTemperatura(self):
@@ -1014,7 +1014,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Convertir temperatura"))
 
     def modoConvertirEnergia(self):
@@ -1023,7 +1023,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Convertir energia"))
 
     def modoConvertirArea(self):
@@ -1032,7 +1032,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Convertir area"))
 
     def modoConvertirVelocidad(self):
@@ -1041,7 +1041,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Convertir velocidad"))
 
     def modoConvertirTiempo(self):
@@ -1050,7 +1050,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Convertir tiempo"))
 
     def modoConvertirPotencia(self):
@@ -1059,7 +1059,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Convertir potencia"))
 
     def modoConvertirDatos(self):
@@ -1068,7 +1068,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Convertir datos"))
 
     def modoConvertirPresion(self):
@@ -1077,7 +1077,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("convertir presion"))
 
     def modoConvertirAngulo(self):
@@ -1086,7 +1086,7 @@ class Calculadora(QMainWindow):
             # remove it from the layout list
             self.frame_central_layout.removeWidget(widgetToRemove)
             # remove it from the gui
-            widgetToRemove.setParent(None)        
+            widgetToRemove.setParent(None)         # type: ignore
         self.frame_central_layout.addWidget(QLabel("Convertir angulo"))
 
     class AcercaDe(QWindow):
