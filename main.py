@@ -25,6 +25,7 @@ from PyQt6.QtCore import (
     QPropertyAnimation,
     QEasingCurve,
     QByteArray,
+    QRect,
 )
 from PyQt6.QtGui import (
     QWindow,
@@ -61,6 +62,7 @@ from PyQt6.QtWidgets import (
     QSizeGrip,
     QRadioButton,
     QButtonGroup,
+    QStackedLayout,
 )
 from enum import Enum
 from qfluentwidgets import StyleSheetBase, Theme, isDarkTheme, qconfig
@@ -100,12 +102,15 @@ class Calculadora(QMainWindow):
             self.screenRect.height(),
         )
         self.screenSize = QSize(self.screenWidth, self.screenHeight)
-        
-        self.setMinimumSize(QSize(int(self.screenWidth/3), int(self.screenHeight/3)))
-        
+
+        self.setMinimumSize(
+            QSize(int(self.screenWidth / 3), int(self.screenHeight / 3))
+        )
+
         self.actualStyleSheet = self.styleSheet() + "\n"
-        self.setStyleSheet(self.actualStyleSheet + 
-            """QRadioButton::indicator{
+        self.setStyleSheet(
+            self.actualStyleSheet
+            + """QRadioButton::indicator{
                 width: 32px; 
                 height: 32px;
                 }
@@ -124,12 +129,16 @@ class Calculadora(QMainWindow):
                 QRadioButton::checked:on{
                     border-bottom: 3px solid #4AF95A;
                 }
-                """)
-        # TODO: Añadir icono
+                QFrame{
+                    margin: 0px;
+                    spacing: 0px;
+                }
+                """
+        )
+        self.setWindowIcon(QIcon(QPixmap.fromImage(QImage(os.path.join("Assets", "icons", "calc_icon.png")))))
         # TODO: Hacer barra superior invisible y handle bottones
         self.ButtonCreator()
-        self.initLateralBar()
-        self.checkMode(self.mode)
+        self.initUI()
 
     def config_read(
         self, cfg_file=os.path.join("Assets", "config.cfg")
@@ -145,6 +154,7 @@ class Calculadora(QMainWindow):
         self.LCDNumber.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
+        self.LCDNumber.setDigitCount(20)
 
         self.MCButton = QPushButton("MC")
         self.MCButton.setSizePolicy(
@@ -416,12 +426,10 @@ class Calculadora(QMainWindow):
     def constructImg(self, img_path: str, size: QSize):
         image = QImage(os.path.join("Assets", img_path))
         image = image.scaled(size, Qt.AspectRatioMode.KeepAspectRatio)
-        image = image.convertToFormat(QImage.Format.Format_MonoLSB)
+        image = image.convertToFormat(QImage.Format.Format_Mono)
         image.setColor(0, qRgba(0, 0, 0, 0))
-        if self.currentTheme == "dark":
+        if self.currentTheme == "DARK":
             image.setColor(1, qRgb(255, 255, 255))
-        else:
-            pass
         return image
 
     def toggleButton(self):
@@ -449,7 +457,7 @@ class Calculadora(QMainWindow):
         self.animation.setEasingCurve(QEasingCurve.Type.InOutQuart)
         self.animation.start()
 
-    def initLateralBar(self):
+    def initUI(self):
         self.frame_inferior = QFrame()  # frame sobre el que se coloca todo
         self.frame_inferior.setSizePolicy(
             QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred
@@ -485,7 +493,45 @@ class Calculadora(QMainWindow):
         self.frame_contenedor.setLayout(self.frame_contenedor_layout)
         self.frame_contenedor_layout.setContentsMargins(0, 0, 0, 0)
         self.frame_contenedor_layout.setSpacing(0)
+        
+        self.stackedWidget = QStackedWidget()  # lado central (donde va la calculadora)
+        # self.frame_central.setFrameShape(QFrame.Shape.StyledPanel)
+        self.stackedWidget.addWidget(self.modoEstandar())
+        self.stackedWidget.addWidget(self.modoCientifico())
+        self.stackedWidget.addWidget(self.modoGrafica())
+        self.stackedWidget.addWidget(self.modoProgramador())
+        self.stackedWidget.addWidget(self.modoCalcularFecha())
+        self.stackedWidget.addWidget(self.modoConvertirDinero())
+        self.stackedWidget.addWidget(self.modoConvertirVolumen())
+        self.stackedWidget.addWidget(self.modoConvertirLongitud())
+        self.stackedWidget.addWidget(self.modoConvertirMasa())
+        self.stackedWidget.addWidget(self.modoConvertirTemperatura())
+        self.stackedWidget.addWidget(self.modoConvertirEnergia())
+        self.stackedWidget.addWidget(self.modoConvertirArea())
+        self.stackedWidget.addWidget(self.modoConvertirVelocidad())
+        self.stackedWidget.addWidget(self.modoConvertirTiempo())
+        self.stackedWidget.addWidget(self.modoConvertirPotencia())
+        self.stackedWidget.addWidget(self.modoConvertirDatos())
+        self.stackedWidget.addWidget(self.modoConvertirPresion())
+        self.stackedWidget.addWidget(self.modoConvertirAngulo())
+        # self.frame_central.layout().setContentsMargins(0, 0, 0, 0)
+        # self.frame_central.layout().setSpacing(0)
+        self.stackedWidget.setCurrentIndex(0)
+        self.initLateralBar()
 
+        
+        self.frame_lateralbar_layout.addWidget(self.frame_lateralbar_buttons)
+        self.frame_lateralbar_layout.addWidget(self.frame_lateralbar_configButton)
+        self.frame_contenedor_layout.addWidget(self.frame_lateralbar)
+        self.frame_contenedor_layout.addWidget(self.stackedWidget)
+        self.frame_inferior_layout.addWidget(self.frame_superior)
+        self.frame_inferior_layout.addWidget(self.frame_contenedor)
+
+        self.setCentralWidget(self.frame_inferior)
+        
+        self.checkMode(self.mode)
+
+    def initLateralBar(self):
         self.frame_lateralbar_buttons = QFrame()  # Frame de los botones
         self.frame_lateralbar_buttons.setFrameShape(QFrame.Shape.StyledPanel)
         self.frame_lateralbar_buttons_layout = QVBoxLayout()
@@ -513,30 +559,71 @@ class Calculadora(QMainWindow):
         self.frame_lateralbar_layout.setSpacing(0)
 
         self.buttonGroup = QButtonGroup()
-        
+
         self.calculadoraLabel = QLabel("Calculadora")  # Calculadora
         self.calculadoraLabel.setStyleSheet("font-weight: 900")
         self.calculadoraLabel.setMaximumHeight(32)
         self.standardButton = QRadioButton("Estandar")
         self.standardButton.setMaximumHeight(32)
-        self.standardButton.setIcon(QIcon(QPixmap.fromImage(self.constructImg(os.path.join("icons", "estandar.png"), QSize(32,32)))))
-        #mostrar standardbutton sin el circulo del qradiobutton
-        self.standardButton.toggled.connect(partial(self.checkMode, "Estandar"))
+        self.standardButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "estandar.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
+        self.standardButton.toggled.connect(partial(self.stackedWidget.setCurrentIndex, 0))
         self.buttonGroup.addButton(self.standardButton, 1)
         self.cientificaButton = QRadioButton("Cientifica")
         self.cientificaButton.setMaximumHeight(32)
-        self.cientificaButton.toggled.connect(partial(self.checkMode, "Cientifico"))
+        self.cientificaButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "cientifica.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
+        self.cientificaButton.toggled.connect(partial(self.stackedWidget.setCurrentIndex, 1))
         self.buttonGroup.addButton(self.cientificaButton, 1)
         self.graficaButton = QRadioButton("Grafica")
         self.graficaButton.setMaximumHeight(32)
+        self.graficaButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "grafica.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
         self.graficaButton.toggled.connect(partial(self.checkMode, "Grafica"))
         self.buttonGroup.addButton(self.graficaButton, 1)
         self.programadorButton = QRadioButton("Programador")
         self.programadorButton.setMaximumHeight(32)
-        self.programadorButton.toggled.connect(partial(self.checkMode, "Programador"))
+        self.programadorButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "programador.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
+        self.programadorButton.toggled.connect(partial(self.stackedWidget.setCurrentIndex, 2))
         self.buttonGroup.addButton(self.programadorButton, 1)
         self.calcFechaButton = QRadioButton("Calculo de fecha")
         self.calcFechaButton.setMaximumHeight(32)
+        self.calcFechaButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(os.path.join("icons", "fecha.png"), QSize(32, 32))
+                )
+            )
+        )
         self.calcFechaButton.toggled.connect(partial(self.checkMode, "CalcularFecha"))
         self.buttonGroup.addButton(self.calcFechaButton, 1)
 
@@ -545,55 +632,172 @@ class Calculadora(QMainWindow):
         self.convertidorLabel.setMaximumHeight(32)
         self.monedaButton = QRadioButton("Moneda")
         self.monedaButton.setMaximumHeight(32)
+        self.monedaButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "moneda.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
         self.monedaButton.toggled.connect(partial(self.checkMode, "ConvertirDinero"))
         self.buttonGroup.addButton(self.monedaButton, 1)
         self.volumenButton = QRadioButton("Volumen")
         self.volumenButton.setMaximumHeight(32)
+        self.volumenButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "volumen.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
         self.volumenButton.toggled.connect(partial(self.checkMode, "ConvertirVolumen"))
         self.buttonGroup.addButton(self.volumenButton, 1)
         self.longitudButton = QRadioButton("Longitud")
         self.longitudButton.setMaximumHeight(32)
-        self.longitudButton.toggled.connect(partial(self.checkMode,"ConvertirLongitud"))
+        self.longitudButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "longitud.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
+        self.longitudButton.toggled.connect(
+            partial(self.checkMode, "ConvertirLongitud")
+        )
         self.buttonGroup.addButton(self.longitudButton, 1)
         self.pesoYmasaButton = QRadioButton("Peso y masa")
         self.pesoYmasaButton.setMaximumHeight(32)
+        self.pesoYmasaButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(os.path.join("icons", "masa.png"), QSize(32, 32))
+                )
+            )
+        )
         self.pesoYmasaButton.toggled.connect(partial(self.checkMode, "ConvertirMasa"))
         self.buttonGroup.addButton(self.pesoYmasaButton, 1)
         self.temperaturaButton = QRadioButton("Temperatura")
         self.temperaturaButton.setMaximumHeight(32)
-        self.temperaturaButton.toggled.connect(partial(self.checkMode, "ConvertirTemperatura"))
+        self.temperaturaButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "temperatura.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
+        self.temperaturaButton.toggled.connect(
+            partial(self.checkMode, "ConvertirTemperatura")
+        )
         self.buttonGroup.addButton(self.temperaturaButton, 1)
         self.energiaButton = QRadioButton("Energia")
         self.energiaButton.setMaximumHeight(32)
-        self.energiaButton.toggled.connect(partial(self.checkMode,"ConvertirEnergia"))
+        self.energiaButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "energia.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
+        self.energiaButton.toggled.connect(partial(self.checkMode, "ConvertirEnergia"))
         self.buttonGroup.addButton(self.energiaButton, 1)
         self.areaButton = QRadioButton("Area")
         self.areaButton.setMaximumHeight(32)
+        self.areaButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(os.path.join("icons", "area.png"), QSize(32, 32))
+                )
+            )
+        )
         self.areaButton.toggled.connect(partial(self.checkMode, "ConvertirArea"))
         self.buttonGroup.addButton(self.areaButton, 1)
         self.velocidadButton = QRadioButton("Velocidad")
         self.velocidadButton.setMaximumHeight(32)
-        self.velocidadButton.toggled.connect(partial(self.checkMode, "ConvertirVelocidad"))
+        self.velocidadButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(os.path.join("icons", "area.png"), QSize(32, 32))
+                )
+            )
+        )
+        self.velocidadButton.toggled.connect(
+            partial(self.checkMode, "ConvertirVelocidad")
+        )
         self.buttonGroup.addButton(self.velocidadButton, 1)
         self.tiempoButton = QRadioButton("Tiempo")
         self.tiempoButton.setMaximumHeight(32)
+        self.tiempoButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "tiempo.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
         self.tiempoButton.toggled.connect(partial(self.checkMode, "ConvertirTiempo"))
         self.buttonGroup.addButton(self.tiempoButton, 1)
         self.potenciaButton = QRadioButton("Potencia")
         self.potenciaButton.setMaximumHeight(32)
-        self.potenciaButton.toggled.connect(partial(self.checkMode, "ConvertirPotencia"))
+        self.potenciaButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "potencia.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
+        self.potenciaButton.toggled.connect(
+            partial(self.checkMode, "ConvertirPotencia")
+        )
         self.buttonGroup.addButton(self.potenciaButton, 1)
         self.datosButton = QRadioButton("Datos")
         self.datosButton.setMaximumHeight(32)
+        self.datosButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(os.path.join("icons", "datos.png"), QSize(32, 32))
+                )
+            )
+        )
         self.datosButton.toggled.connect(partial(self.checkMode, "ConvertirDatos"))
         self.buttonGroup.addButton(self.datosButton, 1)
         self.presionButton = QRadioButton("Presion")
         self.presionButton.setMaximumHeight(32)
+        self.presionButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "presion.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
         self.presionButton.toggled.connect(partial(self.checkMode, "ConvertirPresion"))
         self.buttonGroup.addButton(self.presionButton, 1)
         self.anguloButton = QRadioButton("Angulo")
         self.anguloButton.setMaximumHeight(32)
-        self.anguloButton.toggled.connect(partial(self.checkMode,"ConvertirAngulo"))
+        self.anguloButton.setIcon(
+            QIcon(
+                QPixmap.fromImage(
+                    self.constructImg(
+                        os.path.join("icons", "angulo.png"), QSize(32, 32)
+                    )
+                )
+            )
+        )
+        self.anguloButton.toggled.connect(partial(self.checkMode, "ConvertirAngulo"))
         self.buttonGroup.addButton(self.anguloButton, 1)
 
         self.configButton = QPushButton("Configuracion")
@@ -621,473 +825,189 @@ class Calculadora(QMainWindow):
         self.frame_lateralbar_buttons_layout.addWidget(self.anguloButton)
         self.frame_lateralbar_configButton_layout.addWidget(self.configButton)
 
-        self.frame_central = QFrame()  # lado central (donde va la calculadora)
-        self.frame_central.setFrameShape(QFrame.Shape.StyledPanel)
-        self.frame_central_layout = QGridLayout()
-        self.frame_central.setLayout(self.frame_central_layout)
-        self.frame_central_layout.setContentsMargins(0, 0, 0, 0)
-        self.frame_central_layout.setSpacing(0)
-
-        self.frame_lateralbar_layout.addWidget(self.frame_lateralbar_buttons)
-        self.frame_lateralbar_layout.addWidget(self.frame_lateralbar_configButton)
-        self.frame_contenedor_layout.addWidget(self.frame_lateralbar)
-        self.frame_contenedor_layout.addWidget(self.frame_central)
-        self.frame_inferior_layout.addWidget(self.frame_superior)
-        self.frame_inferior_layout.addWidget(self.frame_contenedor)
-
-        self.setCentralWidget(self.frame_inferior)
-
-        """
-        self.logo_label_standard = QLabel("")
-        self.logo_label_standard.setMinimumSize(QSize(50, 50))
-        self.logo_label_standard.setMaximumSize(QSize(50, 50))
-        self.logo_label_standard.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg("estandar.png", self.logo_label_standard.size())
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_standard)
-
-        self.logo_label_cientifico = QLabel("")
-        self.logo_label_cientifico.setMinimumSize(QSize(50, 50))
-        self.logo_label_cientifico.setMaximumSize(QSize(50, 50))
-        self.logo_label_cientifico.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg("cientifica.png", self.logo_label_cientifico.size())
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_cientifico)
-
-        self.logo_label_grafica = QLabel("")
-        self.logo_label_grafica.setMinimumSize(QSize(50, 50))
-        self.logo_label_grafica.setMaximumSize(QSize(50, 50))
-        self.logo_label_grafica.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg("grafica.png", self.logo_label_grafica.size())
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_grafica)
-
-        self.logo_label_programador = QLabel("")
-        self.logo_label_programador.setMinimumSize(QSize(50, 50))
-        self.logo_label_programador.setMaximumSize(QSize(50, 50))
-        self.logo_label_programador.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg("programador.png", self.logo_label_programador.size())
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_programador)
-
-        self.separator = QLabel("-")
-        self.separator.setMinimumSize(QSize(50, 50))
-        self.separator.setMaximumSize(QSize(50, 50))
-        self.separator.setScaledContents(True)
-        self.icon_only_widget_layout.addWidget(self.separator)
-
-        self.logo_label_calcularFecha = QLabel("")
-        self.logo_label_calcularFecha.setMinimumSize(QSize(50, 50))
-        self.logo_label_calcularFecha.setMaximumSize(QSize(50, 50))
-        self.logo_label_calcularFecha.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg("Fecha.png", self.logo_label_calcularFecha.size())
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_calcularFecha)
-
-        self.logo_label_convertirDinero = QLabel("")
-        self.logo_label_convertirDinero.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirDinero.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirDinero.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg("moneda.png", self.logo_label_convertirDinero.size())
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirDinero)
-
-        self.logo_label_convertirVolumen = QLabel("")
-        self.logo_label_convertirVolumen.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirVolumen.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirVolumen.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg(
-                    "volumen.png", self.logo_label_convertirVolumen.size()
-                )
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirVolumen)
-
-        self.logo_label_convertirLongitud = QLabel("")
-        self.logo_label_convertirLongitud.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirLongitud.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirLongitud.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg(
-                    "longitud.png", self.logo_label_convertirLongitud.size()
-                )
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirLongitud)
-
-        self.logo_label_convertirMasa = QLabel("")
-        self.logo_label_convertirMasa.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirMasa.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirMasa.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg("masa.png", self.logo_label_convertirMasa.size())
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirMasa)
-
-        self.logo_label_convertirTemperatura = QLabel("")
-        self.logo_label_convertirTemperatura.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirTemperatura.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirTemperatura.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg(
-                    "temperatura.png", self.logo_label_convertirTemperatura.size()
-                )
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirTemperatura)
-
-        self.logo_label_convertirEnergia = QLabel("")
-        self.logo_label_convertirEnergia.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirEnergia.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirEnergia.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg(
-                    "energia.png", self.logo_label_convertirEnergia.size()
-                )
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirEnergia)
-
-        self.logo_label_convertirArea = QLabel("")
-        self.logo_label_convertirArea.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirArea.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirArea.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg("area.png", self.logo_label_convertirArea.size())
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirArea)
-
-        self.logo_label_convertirVelocidad = QLabel("")
-        self.logo_label_convertirVelocidad.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirVelocidad.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirVelocidad.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg(
-                    "velocidad.png", self.logo_label_convertirVelocidad.size()
-                )
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirVelocidad)
-
-        self.logo_label_convertirTiempo = QLabel("")
-        self.logo_label_convertirTiempo.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirTiempo.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirTiempo.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg("tiempo.png", self.logo_label_convertirTiempo.size())
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirTiempo)
-
-        self.logo_label_convertirPotencia = QLabel("")
-        self.logo_label_convertirPotencia.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirPotencia.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirPotencia.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg(
-                    "potencia.png", self.logo_label_convertirPotencia.size()
-                )
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirPotencia)
-
-        self.logo_label_convertirDatos = QLabel("")
-        self.logo_label_convertirDatos.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirDatos.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirDatos.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg("datos.png", self.logo_label_convertirDatos.size())
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirDatos)
-
-        self.logo_label_convertirPresion = QLabel("")
-        self.logo_label_convertirPresion.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirPresion.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirPresion.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg(
-                    "presion.png", self.logo_label_convertirPresion.size()
-                )
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirPresion)
-
-        self.logo_label_convertirAngulo = QLabel("")
-        self.logo_label_convertirAngulo.setMinimumSize(QSize(50, 50))
-        self.logo_label_convertirAngulo.setMaximumSize(QSize(50, 50))
-        self.logo_label_convertirAngulo.setPixmap(
-            QPixmap.fromImage(
-                self.constructImg("angulo.png", self.logo_label_convertirAngulo.size())
-            )
-        )
-        self.icon_only_widget_layout.addWidget(self.logo_label_convertirAngulo)
-        self.setCentralWidget(self.icon_only_widget)
-        """
-
     def checkMode(self, mode):
         match mode:
             case "Estandar":
-                self.modoEstandar()
+                self.stackedWidget.setCurrentIndex(0)
             case "Cientifico":
-                self.modoCientifico()
+                self.stackedWidget.setCurrentIndex(1)
             case "Grafica":
-                self.modoGrafica()
+                self.stackedWidget.setCurrentIndex(2)
             case "Programador":
-                self.modoProgramador()
+                self.stackedWidget.setCurrentIndex(3)
             case "CalcularFecha":
-                self.modoCalcularFecha()
+                self.stackedWidget.setCurrentIndex(4)
             case "ConvertirDinero":
-                self.modoConvertirDinero()
+                self.stackedWidget.setCurrentIndex(5)
             case "ConvertirVolumen":
-                self.modoConvertirVolumen()
+                self.stackedWidget.setCurrentIndex(6)
             case "ConvertirLongitud":
-                self.modoConvertirLongitud()
+                self.stackedWidget.setCurrentIndex(7)
             case "ConvertirMasa":
-                self.modoConvertirMasa()
+                self.stackedWidget.setCurrentIndex(8)
             case "ConvertirTemperatura":
-                self.modoConvertirTemperatura()
+                self.stackedWidget.setCurrentIndex(9)
             case "ConvertirEnergia":
-                self.modoConvertirEnergia()
+                self.stackedWidget.setCurrentIndex(10)
             case "ConvertirArea":
-                self.modoConvertirArea()
+                self.stackedWidget.setCurrentIndex(11)
             case "ConvertirVelocidad":
-                self.modoConvertirVelocidad()
+                self.stackedWidget.setCurrentIndex(12)
             case "ConvertirTiempo":
-                self.modoConvertirTiempo()
+                self.stackedWidget.setCurrentIndex(13)
             case "ConvertirPotencia":
-                self.modoConvertirPotencia()
+                self.stackedWidget.setCurrentIndex(14)
             case "ConvertirDatos":
-                self.modoConvertirDatos()
+                self.stackedWidget.setCurrentIndex(15)
             case "ConvertirPresion":
-                self.modoConvertirPresion()
+                self.stackedWidget.setCurrentIndex(16)
             case "ConvertirAngulo":
-                self.modoConvertirAngulo()
+                self.stackedWidget.setCurrentIndex(17)
 
     def modoEstandar(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)           # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Estandar"))
-        """
-        centralWidget = QWidget()
-        MButtonsWidget = QWidget()
-        layout = QGridLayout()
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        generalFrame.setLayout(generalFrame_layout)
 
-        MButtonsLayout = QGridLayout()
-        generalButtons = QWidget()
-        generalButtonsLayout = QGridLayout()
+        lcdFrame = QFrame()
+        lcdFrame.setMinimumSize(310, 90)
+        lcdFrame.setFrameShape(QFrame.Shape.StyledPanel)
+        lcdFrame_layout = QGridLayout()
+        lcdFrame.setLayout(lcdFrame_layout)
+        lcdFrame_layout.addWidget(self.LCDNumber)
 
-        MButtonsLayout.addWidget(self.LCDNumber, 0, 0, 1, 5)
-        MButtonsLayout.addWidget(self.MCButton, 1, 0)
-        MButtonsLayout.addWidget(self.MRButton, 1, 1)
-        MButtonsLayout.addWidget(self.MPlusButton, 1, 2)
-        MButtonsLayout.addWidget(self.MMenosButton, 1, 3)
-        MButtonsLayout.addWidget(self.MSButton, 1, 4)
-        generalButtonsLayout.addWidget(self.porcientoButton, 2, 0)
-        generalButtonsLayout.addWidget(self.CEButton, 2, 1)
-        generalButtonsLayout.addWidget(self.CButton, 2, 2)
-        generalButtonsLayout.addWidget(self.deleteButton, 2, 3)
-        generalButtonsLayout.addWidget(self.fracc1overxButton, 3, 0)
-        generalButtonsLayout.addWidget(self.cuadradoButton, 3, 1)
-        generalButtonsLayout.addWidget(self.sqrtButton, 3, 2)
-        generalButtonsLayout.addWidget(self.divButton, 3, 3)
-        generalButtonsLayout.addWidget(self.sevenButton, 4, 0)
-        generalButtonsLayout.addWidget(self.eightButton, 4, 1)
-        generalButtonsLayout.addWidget(self.nineButton, 4, 2)
-        generalButtonsLayout.addWidget(self.multButton, 4, 3)
-        generalButtonsLayout.addWidget(self.fourButton, 5, 0)
-        generalButtonsLayout.addWidget(self.fiveButton, 5, 1)
-        generalButtonsLayout.addWidget(self.sixButton, 5, 2)
-        generalButtonsLayout.addWidget(self.minusButton, 5, 3)
-        generalButtonsLayout.addWidget(self.oneButton, 6, 0)
-        generalButtonsLayout.addWidget(self.twoButton, 6, 1)
-        generalButtonsLayout.addWidget(self.threeButton, 6, 2)
-        generalButtonsLayout.addWidget(self.plusButton, 6, 3)
-        generalButtonsLayout.addWidget(self.masmenosButton, 7, 0)
-        generalButtonsLayout.addWidget(self.ceroButton, 7, 1)
-        generalButtonsLayout.addWidget(self.comaButton, 7, 2)
-        generalButtonsLayout.addWidget(self.equalButton, 7, 3)
-        generalButtons.setLayout(generalButtonsLayout)
-        MButtonsWidget.setLayout(MButtonsLayout)
-        layout.addWidget(MButtonsWidget)
-        layout.addWidget(generalButtons)
-        centralWidget.setLayout(layout)
-        self.setCentralWidget(centralWidget)
-        return centralWidget
-        """
+        MButtonsFrame = QFrame()
+        MButtonsFrame.setMinimumSize(300, 50)
+        MButtonsFrame.setFrameShape(QFrame.Shape.StyledPanel)
+        MButtonsFrame_layout = QHBoxLayout()
+        MButtonsFrame.setLayout(MButtonsFrame_layout)
+        MButtonsFrame_layout.addWidget(self.MCButton)
+        MButtonsFrame_layout.addWidget(self.MRButton)
+        MButtonsFrame_layout.addWidget(self.MPlusButton)
+        MButtonsFrame_layout.addWidget(self.MMenosButton)
+        MButtonsFrame_layout.addWidget(self.MSButton)
+
+        generalButtonFrame = QFrame()
+        generalButtonFrame.setMinimumSize(300, 800)
+        generalButtonFrame.setFrameShape(QFrame.Shape.StyledPanel)
+        generalButtonFrame_layout = QGridLayout()
+        generalButtonFrame.setLayout(generalButtonFrame_layout)
+        generalButtonFrame_layout.addWidget(self.porcientoButton, 2, 0)
+        generalButtonFrame_layout.addWidget(self.CEButton, 2, 1)
+        generalButtonFrame_layout.addWidget(self.CButton, 2, 2)
+        generalButtonFrame_layout.addWidget(self.deleteButton, 2, 3)
+        generalButtonFrame_layout.addWidget(self.fracc1overxButton, 3, 0)
+        generalButtonFrame_layout.addWidget(self.cuadradoButton, 3, 1)
+        generalButtonFrame_layout.addWidget(self.sqrtButton, 3, 2)
+        generalButtonFrame_layout.addWidget(self.divButton, 3, 3)
+        generalButtonFrame_layout.addWidget(self.sevenButton, 4, 0)
+        generalButtonFrame_layout.addWidget(self.eightButton, 4, 1)
+        generalButtonFrame_layout.addWidget(self.nineButton, 4, 2)
+        generalButtonFrame_layout.addWidget(self.multButton, 4, 3)
+        generalButtonFrame_layout.addWidget(self.fourButton, 5, 0)
+        generalButtonFrame_layout.addWidget(self.fiveButton, 5, 1)
+        generalButtonFrame_layout.addWidget(self.sixButton, 5, 2)
+        generalButtonFrame_layout.addWidget(self.minusButton, 5, 3)
+        generalButtonFrame_layout.addWidget(self.oneButton, 6, 0)
+        generalButtonFrame_layout.addWidget(self.twoButton, 6, 1)
+        generalButtonFrame_layout.addWidget(self.threeButton, 6, 2)
+        generalButtonFrame_layout.addWidget(self.plusButton, 6, 3)
+        generalButtonFrame_layout.addWidget(self.masmenosButton, 7, 0)
+        generalButtonFrame_layout.addWidget(self.ceroButton, 7, 1)
+        generalButtonFrame_layout.addWidget(self.comaButton, 7, 2)
+        generalButtonFrame_layout.addWidget(self.equalButton, 7, 3)
+
+        generalFrame_layout.addWidget(lcdFrame)
+        generalFrame_layout.addWidget(MButtonsFrame)
+        generalFrame_layout.addWidget(generalButtonFrame)
+        
+
+        return generalFrame
 
     def modoCientifico(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Cientifico"))
-
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoGrafica(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Grafica"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoProgramador(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Programador"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoCalcularFecha(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Calcular fecha"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirDinero(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Convertir dinero"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirVolumen(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("convertir volumen"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirLongitud(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Convertir longitud"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirMasa(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Convertir masa"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirTemperatura(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Convertir temperatura"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirEnergia(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Convertir energia"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirArea(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Convertir area"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirVelocidad(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Convertir velocidad"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirTiempo(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Convertir tiempo"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirPotencia(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Convertir potencia"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirDatos(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Convertir datos"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirPresion(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("convertir presion"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     def modoConvertirAngulo(self):
-        for i in reversed(range(self.frame_central_layout.count())): 
-            widgetToRemove = self.frame_central_layout.itemAt(i).widget()
-            # remove it from the layout list
-            self.frame_central_layout.removeWidget(widgetToRemove)
-            # remove it from the gui
-            widgetToRemove.setParent(None)         # type: ignore
-        self.frame_central_layout.addWidget(QLabel("Convertir angulo"))
+        generalFrame = QFrame()
+        generalFrame_layout = QVBoxLayout()
+        return generalFrame
 
     class AcercaDe(QWindow):
         pass
