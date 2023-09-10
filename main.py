@@ -96,7 +96,7 @@ class Calculadora(QMainWindow):
         self.mode = self.cfg.get(
             "Mode", "actual-mode"
         )  # TODO: Si cambia el modo, cambia esta variable en el archivo cfg
-        self.screenRect = QScreen.availableGeometry(self.screen())
+        self.screenRect = QScreen.availableGeometry(self.screen()) # type:ignore
         self.screenWidth, self.screenHeight = (
             self.screenRect.width(),
             self.screenRect.height(),
@@ -407,10 +407,12 @@ class Calculadora(QMainWindow):
 
     def addToLCD_STD(self, number: int):
         originalNumber = self.LCDNumber.value()
+        if self.LCDNumber.checkOverflow(20):
+            return None
         if originalNumber == 0:
             originalNumber = int()
-        finalNumber = str(int(originalNumber)) + str(
-            "{}".format(str(number)[1:] if str(number).startswith("0") else str(number))
+        finalNumber = str(int(originalNumber)) + str(number
+            # "{}".format(str(number)[1:] if str(number).startswith("0") else str(number))
         )
         if finalNumber == int(float(finalNumber)):
             self.LCDNumber.display(str(int(finalNumber)))
@@ -825,46 +827,69 @@ class Calculadora(QMainWindow):
         self.frame_lateralbar_buttons_layout.addWidget(self.anguloButton)
         self.frame_lateralbar_configButton_layout.addWidget(self.configButton)
 
+    def writeCfg(self, section, option, value):
+        self.cfg.set(section, option, value)
+        with open(os.path.join("Assets", "config.cfg"), "w") as configfile:
+            self.cfg.write(configfile)
+    
     def checkMode(self, mode):
         match mode:
             case "Estandar":
+                self.standardButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(0)
             case "Cientifico":
+                self.cientificaButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(1)
             case "Grafica":
+                self.graficaButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(2)
             case "Programador":
+                self.programadorButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(3)
             case "CalcularFecha":
+                self.calcFechaButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(4)
             case "ConvertirDinero":
+                self.monedaButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(5)
             case "ConvertirVolumen":
+                self.volumenButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(6)
             case "ConvertirLongitud":
+                self.longitudButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(7)
             case "ConvertirMasa":
+                self.pesoYmasaButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(8)
             case "ConvertirTemperatura":
+                self.temperaturaButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(9)
             case "ConvertirEnergia":
+                self.energiaButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(10)
             case "ConvertirArea":
+                self.areaButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(11)
             case "ConvertirVelocidad":
+                self.velocidadButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(12)
             case "ConvertirTiempo":
+                self.tiempoButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(13)
             case "ConvertirPotencia":
+                self.potenciaButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(14)
             case "ConvertirDatos":
+                self.datosButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(15)
             case "ConvertirPresion":
                 self.stackedWidget.setCurrentIndex(16)
             case "ConvertirAngulo":
+                self.anguloButton.setChecked(True)
                 self.stackedWidget.setCurrentIndex(17)
 
     def modoEstandar(self):
+        self.writeCfg("Mode", "actual-mode", "Estandar")
         generalFrame = QFrame()
         generalFrame_layout = QVBoxLayout()
         generalFrame.setLayout(generalFrame_layout)
@@ -925,6 +950,7 @@ class Calculadora(QMainWindow):
         return generalFrame
 
     def modoCientifico(self):
+        self.writeCfg("Mode", "actual-mode", "Cientifico")
         generalFrame = QFrame()
         generalFrame_layout = QVBoxLayout()
         return generalFrame
