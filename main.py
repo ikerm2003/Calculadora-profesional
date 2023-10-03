@@ -65,21 +65,6 @@ from PyQt6.QtWidgets import (
     QStackedLayout,
 )
 from enum import Enum
-from qfluentwidgets import StyleSheetBase, Theme, isDarkTheme, qconfig
-
-
-class StyleSheet(StyleSheetBase, Enum):
-    """Style sheet"""
-
-    MAIN_WINDOW = "main_window"
-
-    def path(self, theme=Theme.AUTO):
-        theme = qconfig.theme if theme == Theme.AUTO else theme
-        if theme == Theme.LIGHT:
-            return qdarktheme.load_stylesheet("light")
-        if theme == Theme.DARK:
-            return qdarktheme.load_stylesheet("dark")
-
 
 class Calculadora(QMainWindow):
     """Calculadora grafica basada en una ventana principal (QMainWindow)"""
@@ -88,8 +73,7 @@ class Calculadora(QMainWindow):
         """Funcion de inicio"""
         super().__init__()
         self.setWindowTitle("Calculadora")
-        self.setStyleSheet(qdarktheme.load_stylesheet("dark"))
-        # StyleSheet.MAIN_WINDOW.apply(self, Theme.DARK)
+        self.setStyleSheet(qdarktheme.load_stylesheet("auto"))
         self.cfg = self.config_read()
         self.themes = self.cfg.get("Theme", "posible-themes")
         self.currentTheme = self.cfg.get("Theme", "actual-theme")
@@ -240,21 +224,21 @@ class Calculadora(QMainWindow):
         self.sevenButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.sevenButton.clicked.connect(lambda: self.addToLCD_STD(7))
+        self.sevenButton.clicked.connect(partial(self.addToLCD_STD, 7))
         self.sevenButton.setShortcut(Qt.Key.Key_7)
 
         self.eightButton = QPushButton("8")
         self.eightButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.sevenButton.clicked.connect(lambda: self.addToLCD_STD(8))
+        self.eightButton.clicked.connect(partial(self.addToLCD_STD, 8))
         self.eightButton.setShortcut(Qt.Key.Key_8)
 
         self.nineButton = QPushButton("9")
         self.nineButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.nineButton.clicked.connect(lambda: self.addToLCD_STD(9))
+        self.nineButton.clicked.connect(partial(self.addToLCD_STD, 9))
         self.nineButton.setShortcut(Qt.Key.Key_9)
 
         self.multButton = QPushButton("x")
@@ -268,21 +252,21 @@ class Calculadora(QMainWindow):
         self.fourButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.fourButton.clicked.connect(lambda: self.addToLCD_STD(4))
+        self.fourButton.clicked.connect(partial(self.addToLCD_STD, 4))
         self.fourButton.setShortcut(Qt.Key.Key_4)
 
         self.fiveButton = QPushButton("5")
         self.fiveButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.fiveButton.clicked.connect(lambda: self.addToLCD_STD(5))
+        self.fiveButton.clicked.connect(partial(self.addToLCD_STD, 5))
         self.fiveButton.setShortcut(Qt.Key.Key_5)
 
         self.sixButton = QPushButton("6")
         self.sixButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.sixButton.clicked.connect(lambda: self.addToLCD_STD(6))
+        self.sixButton.clicked.connect(partial(self.addToLCD_STD, 6))
         self.sixButton.setShortcut(Qt.Key.Key_6)
 
         self.minusButton = QPushButton("-")
@@ -296,21 +280,21 @@ class Calculadora(QMainWindow):
         self.oneButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.oneButton.clicked.connect(lambda: self.addToLCD_STD(1))
+        self.oneButton.clicked.connect(partial(self.addToLCD_STD, 1))
         self.oneButton.setShortcut(Qt.Key.Key_1)
 
         self.twoButton = QPushButton("2")
         self.twoButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.twoButton.clicked.connect(lambda: self.addToLCD_STD(2))
+        self.twoButton.clicked.connect(partial(self.addToLCD_STD, 2))
         self.twoButton.setShortcut(Qt.Key.Key_2)
 
         self.threeButton = QPushButton("3")
         self.threeButton.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         )
-        self.threeButton.clicked.connect(lambda: self.addToLCD_STD(3))
+        self.threeButton.clicked.connect(partial(self.addToLCD_STD, 3))
         self.threeButton.setShortcut(Qt.Key.Key_3)
 
         self.plusButton = QPushButton("+")
@@ -407,23 +391,20 @@ class Calculadora(QMainWindow):
 
     def addToLCD_STD(self, number: int):
         originalNumber = self.LCDNumber.value()
-        if self.LCDNumber.checkOverflow(20):
+        if int(originalNumber) == originalNumber:
+            originalNumber = int(originalNumber)
+        if len(str(originalNumber)) >= 20:
             return None
         if originalNumber == 0:
-            originalNumber = int()
-        finalNumber = str(int(originalNumber)) + str(number
-            # "{}".format(str(number)[1:] if str(number).startswith("0") else str(number))
-        )
-        if finalNumber == int(float(finalNumber)):
-            self.LCDNumber.display(str(int(finalNumber)))
-        else:
-            self.LCDNumber.display(
-                str(
-                    "{}".format(
-                        finalNumber[1:] if finalNumber.startswith("0") else finalNumber
-                    )
+            originalNumber = int(0)
+        finalNumber = str(int(originalNumber)) + str(number)
+        self.LCDNumber.display(
+            str(
+                "{}".format(
+                    finalNumber[1:] if finalNumber.startswith("0") else finalNumber
                 )
             )
+        )        
 
     def constructImg(self, img_path: str, size: QSize):
         image = QImage(os.path.join("Assets", img_path))
